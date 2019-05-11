@@ -36,24 +36,35 @@ class ScaleUtil {
 class DrawingUtil {
 
       static drawLine(context : CanvasRenderingContext2D, x1 : number, y1 : number, x2 : number, y2 : number, clip : boolean) {
-          context.beginPath()
-          context.moveTo(x1, y1)
+          if (!clip) {
+              context.beginPath()
+              context.moveTo(x1, y1)
+          }
           context.lineTo(x2, y2)
           if (!clip) {
               context.stroke()
-          } else {
-              context.clip()
           }
       }
 
       static drawTriangle(context : CanvasRenderingContext2D, size : number, clip : boolean) {
+          if (clip) {
+              context.beginPath()
+              context.moveTo(0, 0)
+          }
           DrawingUtil.drawLine(context, 0, 0, -size / 2, -size / 2, clip)
           DrawingUtil.drawLine(context, -size / 2, -size / 2, size / 2, -size / 2, clip)
           DrawingUtil.drawLine(context, size / 2, -size / 2, 0, 0, clip)
+          if (clip) {
+              context.clip()
+          }
       }
 
       static drawFillRect(context : CanvasRenderingContext2D, size : number, sc : number) {
-          context.fillRect(-size / 2, -size / 2 * sc, size, size / 2 * sc)
+          const h : number = size / 2 * sc
+          context.fillRect(-size / 2, -h, size, h)
+          if (sc > 0 && sc < 1) {
+              console.log(`height is ${h}`)
+          }
       }
 
       static drawFillTriangle(context : CanvasRenderingContext2D, sc : number, size : number) {
@@ -72,19 +83,23 @@ class DrawingUtil {
       static drawBTFNode(context : CanvasRenderingContext2D, i : number, scale : number) {
           const w : number = window.innerWidth
           const h : number = window.innerHeight
-          const gap : number = h / (nodes + 1)
+          const gap : number = w / (nodes + 1)
           const size : number = gap / sizeFactor
           const sc1 : number = ScaleUtil.divideScale(scale, 0, 2)
           const sc2 : number = ScaleUtil.divideScale(scale, 1, 2)
           context.lineCap = 'round'
           context.lineWidth = Math.min(w, h) / strokeFactor
           context.strokeStyle = foreColor
+          context.fillStyle = foreColor
           context.save()
-          context.translate(w / 2, gap * (i + 1))
+          context.translate(gap * (i + 1), h / 2)
           context.rotate(Math.PI / 2 * sc2)
           for (var j = 0; j < triangles; j++) {
               context.save()
               context.scale(1 - 2 * j, 1)
+              if (sc1 > 0 && sc1 < 1) {
+                  console.log(`index : ${i}, ${j}`)
+              }
               DrawingUtil.drawFillTriangle(context, ScaleUtil.divideScale(sc1, j, triangles), size)
               context.restore()
           }
@@ -106,7 +121,7 @@ class BiTriFillStage {
     }
 
     render() {
-        this.context.fillStyle = foreColor
+        this.context.fillStyle = backColor
         this.context.fillRect(0, 0, w, h)
         this.renderer.render(this.context)
     }
