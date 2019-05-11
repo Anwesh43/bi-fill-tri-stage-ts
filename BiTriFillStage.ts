@@ -235,3 +235,25 @@ class BiTriFill {
         this.curr.startUpdating(cb)
     }
 }
+
+class Renderer {
+
+    animator : Animator = new Animator()
+    btf : BiTriFill = new BiTriFill()
+
+    render(context : CanvasRenderingContext2D) {
+        this.btf.draw(context)
+    }
+
+    handleTap(cb : Function) {
+        this.btf.startUpdating(() => {
+            this.animator.start(() => {
+                cb()
+                this.btf.update(() => {
+                    this.animator.stop()
+                    cb()
+                })
+            })
+        })
+    }
+}
